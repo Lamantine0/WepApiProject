@@ -1,5 +1,5 @@
 
-from datetime import date
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -11,6 +11,7 @@ class User_model(BaseModel):
 
     email: str
 
+    created_at : datetime
 
 
 class User_create(BaseModel):
@@ -26,7 +27,7 @@ class User_sort_date(BaseModel):
 
     email : str
 
-    created_at : date
+    created_at : datetime
 
 
 

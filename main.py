@@ -1,11 +1,17 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Annotated, List
 import bcrypt
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
+import Model.model
 from Setting_db.setting import settings_db
 from Model.model import Table_user
 from Responce_model.model_response import User_model, User_create, User_sort_date
+import logging
+import Model
+
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
@@ -66,7 +72,7 @@ class Info_user:
 
         with settings_db.Create_session() as db:
 
-            get_users = db.query(Table_user).all() # получение всех пользователей
+            get_users = db.query(Table_user).order_by().all() # получение всех пользователей
       
             all_user = [] # Создание пустого листа
 
@@ -76,7 +82,9 @@ class Info_user:
 
                     "id" : user.id,
                     "username" : user.username,
-                    "email" : user.email
+                    "email" : user.email,
+                    "created_at" : user.created_at
+                   
                 })
 
                 
@@ -117,39 +125,48 @@ class Info_user:
 
                 raise HTTPException(status_code=404, detail="Пользователь с таким ID не найден")
 
-            return { 
+
+            return ({ 
                 "id" : user_by_id.id,
                 "username" : user_by_id.username,
-                "email" : user_by_id.email 
-            }
+                "email" : user_by_id.email,
+                "created_at" : user_by_id.created_at
+            })
 
             
             
-            
-    @app.get("/sort_by_date/")
-    async def sort_by_user_date(sort_by_date: date):
 
-        
-        start_of_day = datetime.combine(sort_by_date, datetime.min.time())
 
-        end_of_day = datetime.combine(sort_by_date, datetime.max.time())
+    @app.get("/sort_user_date/")
+    async def sort_user_date(user_sort_by: date):
 
         with settings_db.Create_session() as db:
 
-            user_sort_date = db.query(Table_user).filter(
-            Table_user.created_at >= start_of_day,
-            Table_user.created_at <= end_of_day
-        ).all()
+            sort_user = db.query(Table_user).filter(Table_user.created_at == user_sort_by.strftime("%d/%m/%Y")).all()
+
+            list_user = []
+
+            for user in sort_user:
+
+                list_user.append({
+
+                    "username" : user.username,
+
+                    "email" : user.email,
+
+                    "create_at" : user.created_at
+                })
+
+            return list_user
+
+
+
+ 
+
+                
+
+          
+
             
-            return user_sort_date
+
             
-
-
-    @app.get("/sort_by_date/")
-    async def test(sort_by_date: date):
-
-        with settings_db.Create_session() as db:
-
-            sort = db.query(Table_user).filter(Table_user.created_at == sort_by_date).all() 
-
-        return sort
