@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated, List
 import bcrypt
 from fastapi import FastAPI, HTTPException, Query
@@ -9,7 +9,7 @@ from Model.model import Table_user
 from Responce_model.model_response import User_model, User_create, User_sort_date
 import logging
 import Model
-
+from sqlalchemy import func
 
 logging.basicConfig(level=logging.INFO)
 
@@ -141,24 +141,25 @@ class Info_user:
     async def sort_user_date(user_sort_by: date):
 
         with settings_db.Create_session() as db:
+            
 
-            sort_user = db.query(Table_user).filter(Table_user.created_at == user_sort_by.strftime("%d/%m/%Y")).all()
+            # Первая реализация , с диапозонами по дате 
+            """
+            
+            start_of_day = datetime.combine(user_sort_by, datetime.min.time())
 
-            list_user = []
+            end_of_day = datetime.combine(user_sort_by, datetime.max.time())
 
-            for user in sort_user:
+            sort_user = db.query(Table_user).filter(Table_user.created_at >= start_of_day, Table_user.created_at <= end_of_day).all()
 
-                list_user.append({
+            """
 
-                    "username" : user.username,
+            # Вторая по проще , используем func.date которое игнорирует время и сравнивает только дату
 
-                    "email" : user.email,
+            sort_user = db.query(Table_user).filter(func.date(Table_user.created_at) == user_sort_by).all()
 
-                    "create_at" : user.created_at
-                })
 
-            return list_user
-
+            return sort_user
 
 
  
