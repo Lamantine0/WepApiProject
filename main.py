@@ -24,7 +24,7 @@ class UserCreate(BaseModel): # Модель создания пользоват�
 
 
 class Info_user:
-
+    
     @app.post("/create_user/", response_model=User_create) # Модель ответа в формате json()
     async def create_user(
         user: UserCreate
@@ -158,8 +158,41 @@ class Info_user:
 
             sort_user = db.query(Table_user).filter(func.date(Table_user.created_at) == user_sort_by).all()
 
+            if not sort_user:
+
+                raise HTTPException(status_code=404, detail="Пользователи с данными датами не найдены")
+
 
             return sort_user
+
+
+
+    @app.post("/create_new_user/")
+    async def create_new_user(username : str, email : str, password : str):
+
+        with settings_db.Create_session() as db:
+
+            password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            create_new_user = Table_user(
+                
+                username = username,
+                email = email,
+                password_hash = password
+            )
+
+            db.add(create_new_user)
+
+            db.commit()
+
+            db.refresh(create_new_user)
+
+
+            return create_new_user
+
+
+
+
 
 
  
