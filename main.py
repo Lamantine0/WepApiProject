@@ -24,6 +24,17 @@ class UserCreate(BaseModel): # Модель создания пользоват�
 
 
 class Info_user:
+
+
+    def __init__(self, username = None, email  = None, password = None):
+
+        self.username = username
+
+        self.email = email
+
+        self.password = password
+
+
     
     @app.post("/create_user/", response_model=User_create) # Модель ответа в формате json()
     async def create_user(
@@ -195,11 +206,92 @@ class Info_user:
 
 
 
- 
+    @app.get("/search_name/")
+    async def search_name(self,username):
+
+        with settings_db.Create_session() as db:
+
+            search_username = db.query(Table_user).filter(Table_user.username == self.username)
+
+
+            return search_username
 
                 
 
           
+    @app.post("/create_new_user/")
+    async def create_user(self, username: str, email: str, password: str):
+
+        
+
+        with settings_db.Create_session() as db:
+
+            password_ = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            create_user = Table_user(
+
+                username = username,
+
+                email = email,
+
+                password = password_.decode('utf-8'))
+
+
+            db.add(create_user)
+
+            db.commit()
+
+            db.refresh(create_user)
+
+
+            return create_user
+
+
+    def create_user_(self, username: str, email: str, password: str):
+
+        
+
+        with settings_db.Create_session() as db:
+
+            password_ = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            # Важно сопостовлять Поля Table_user в создание объекта
+
+            create_user = Table_user(
+
+                username = username,
+
+                email = email,
+
+                password_hash = password_.decode('utf-8'))
+
+
+            db.add(create_user)
+
+            db.commit()
+
+            db.refresh(create_user)
+
+
+            return create_user
+
+
+                
+create = Info_user()
+
+create.create_user_("azazaza", "azazaza@asx.ff", "asasc2345656")
+
+
+       
+
+
+
+   
+
+                
+
+        
+
 
             
 
